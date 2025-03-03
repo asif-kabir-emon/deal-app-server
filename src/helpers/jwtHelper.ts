@@ -8,7 +8,7 @@ const generateToken = (
   const token = jwt.sign(payload, secret, {
     algorithm: 'HS256',
     expiresIn,
-  });
+  } as jwt.SignOptions);
 
   return token;
 };

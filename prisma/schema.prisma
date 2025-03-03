@@ -51,16 +51,16 @@ model Profiles {
 model OAuth {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   userId     String   @unique @db.ObjectId
-  provider   Provider
+  provider   OAuthProvider
   providerId String
   createdAt  DateTime @default(now())
 
   user Users @relation(fields: [userId], references: [id])
 
-  @@map("oauth")
+  @@map("user_oauth")
 }
 
-enum Provider {
+enum OAuthProvider {
   google
   github
   discord
@@ -70,13 +70,14 @@ enum Provider {
 model OTP {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   userId    String   @unique @db.ObjectId
-  code      String?
+  code      String
   type      OtpType
   expiresAt DateTime
   createdAt DateTime @default(now())
 
   user Users @relation(fields: [userId], references: [id])
 
+  @@unique([userId, type])
   @@map("user_otps")
 }
 
