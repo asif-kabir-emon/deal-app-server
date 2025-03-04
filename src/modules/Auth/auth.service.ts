@@ -91,7 +91,7 @@ const singInUser = async (payload: SignInPayload) => {
       avatar: isUserExist.profile?.avatar,
       role: isUserExist.role,
     },
-    redirectUrl: null,
+    redirectUrl: '/',
   };
 };
 
@@ -159,7 +159,7 @@ const signUpUser = async (payload: SignUpPayload) => {
 
   return {
     user: user,
-    redirectUrl: `/auth/verify-email?email=${user.email}`,
+    redirectUrl: `/verify-user?email=${user.email}`,
   };
 };
 
@@ -176,6 +176,10 @@ const sendOtp = async (payload: SendOtpPayload) => {
   }
 
   if (payload.type === OtpType.email_verification) {
+    if (isUserExist.isVerified) {
+      throw new ApiError(httpStatus.BAD_REQUEST, 'User is already verified.');
+    }
+
     // Generate OTP
     const otp = Math.floor(100000 + Math.random() * 999999).toString();
 
@@ -207,6 +211,8 @@ const sendOtp = async (payload: SendOtpPayload) => {
     }
 
     // Send OTP to email
+    const verificationLink = `${config.FRONTEND_BASE_URL}/verify-user?email=${payload.email}`;
+
     await sendEmail({
       to: payload.email,
       subject: 'Your One-Time Password (OTP) for Email Verification',
@@ -216,11 +222,8 @@ const sendOtp = async (payload: SendOtpPayload) => {
         <p>Dear User,</p>
         <p>We received a request to verify your account. Please use the following One-Time Password (OTP) to proceed:</p>
         <p style="background: #f0f0f0; font-size: 24px; font-weight: bold; color: #333333; text-align: center; padding: 10px; display: inline-block;">${otp}</p>
-        <p>This OTP is valid for <strong>10 minutes</strong>. Do not share this code with anyone.</p>
-        <p>If you did not request this verification, please ignore this email.</p>
-        <br>
-        <p>If you have not been redirected to the email verification page, please visit the following link:</p>
-        <p><a href="${config.FRONTEND_BASE_URL}/verify-email?email=${payload.email}" style="color: #007bff; text-decoration: none;">Verify Email</a></p>
+        <p>This OTP is valid for <strong>10 minutes</strong>. Do not share this code with anyone. If you did not request this verification, please ignore this email.</p>
+        <p style="margin-top: 10px;">If you have not been redirected to the email verification page, please visit <a href="${verificationLink}" style="color: #007bff;">Verify Email</a></p>
         <br>
         <p>Best Regards,</p>
         <p><strong>${config.APP_NAME} Support Team</strong></p>
@@ -263,6 +266,7 @@ const sendOtp = async (payload: SendOtpPayload) => {
         expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
       },
     });
+    console.log(otpData);
 
     if (!otpData) {
       throw new ApiError(
@@ -335,11 +339,18 @@ const resetPassword = async (payload: ResetPasswordPayload) => {
   }
 
   // Check: Password match with previous password or not
-  if (payload.password === isUserExist.password) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      'New password should be different from the previous password.'
+  if (isUserExist.password) {
+    const isPasswordMatch = await bcrypt.compare(
+      payload.password,
+      isUserExist.password
     );
+
+    if (isPasswordMatch) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        'New password must be different from the previous password.'
+      );
+    }
   }
 
   // Hash password
@@ -364,6 +375,14 @@ const resetPassword = async (payload: ResetPasswordPayload) => {
       'Failed to update password.'
     );
   }
+
+  // Delete OTP
+  await prisma.oTP.delete({
+    where: {
+      id: otpData.id,
+      type: OtpType.password_reset,
+    },
+  });
 
   return;
 };
@@ -425,6 +444,14 @@ const verifyEmail = async (payload: VerifyEmailPayload) => {
       'Failed to verify email.'
     );
   }
+
+  // Delete OTP
+  await prisma.oTP.delete({
+    where: {
+      id: otpData.id,
+      type: OtpType.email_verification,
+    },
+  });
 
   // generate token
   const jwtPayload = {
@@ -568,7 +595,7 @@ const OAuthSignIn = async (payload: OAuthSignInPayload) => {
   );
 
   return {
-    token,
+    token: token,
     user: userData,
     redirectUrl: null,
   };

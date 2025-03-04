@@ -39,6 +39,8 @@ export const sendEmail = async ({
         'Failed to send email'
       );
     }
+
+    return info;
   } catch (error) {
     throw new ApiError(
       httpStatus.INTERNAL_SERVER_ERROR,

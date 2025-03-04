@@ -8,7 +8,7 @@ import prisma from '../utils/prisma';
 
 const auth = (...roles: string[]) => {
   return catchAsync(async (req, res, next) => {
-    const token = req.headers.authorization;
+    const token = req.headers.authorization?.split(' ')[1];
 
     if (!token) {
       throw new ApiError(httpStatus.UNAUTHORIZED, 'You are not authorized!');
