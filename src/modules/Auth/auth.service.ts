@@ -553,7 +553,7 @@ const OAuthSignIn = async (payload: OAuthSignInPayload) => {
             userId: newUser.id,
             firstName: payload.firstName,
             lastName: payload.lastName,
-            avatar: payload.avatar || null,
+            avatar: payload.avatar,
           },
         });
 
