@@ -122,6 +122,7 @@ const OAuthSignInSchema = z.object({
       .min(1, {
         message: 'Last name must be at least 1 characters.',
       }),
+    avatar: z.string().optional(),
     provider: z.enum([OAuthProvider.google, OAuthProvider.github], {
       message: 'Invalid provider.',
     }),

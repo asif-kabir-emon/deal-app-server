@@ -553,6 +553,7 @@ const OAuthSignIn = async (payload: OAuthSignInPayload) => {
             userId: newUser.id,
             firstName: payload.firstName,
             lastName: payload.lastName,
+            avatar: payload.avatar || null,
           },
         });
 
@@ -586,6 +587,8 @@ const OAuthSignIn = async (payload: OAuthSignInPayload) => {
     id: userData.id,
     email: userData.email,
     role: userData.role,
+    name: userData.name,
+    avatar: userData.avatar,
   } as JwtPayload;
 
   const token = jwtHelper.generateToken(

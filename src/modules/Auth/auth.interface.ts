@@ -37,6 +37,7 @@ export interface OAuthSignInPayload {
   email: string;
   firstName: string;
   lastName: string;
+  avatar?: string;
   provider: OAuthProvider;
   providerId: string;
 }
