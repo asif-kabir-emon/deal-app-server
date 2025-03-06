@@ -76,6 +76,7 @@ const changePassword = catchAsync(async (req, res) => {
 });
 
 const OAuthSignIn = catchAsync(async (req, res) => {
+  console.log(req.body);
   const result = await AuthService.OAuthSignIn(req.body);
 
   sendResponse(res, {

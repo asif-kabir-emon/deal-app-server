@@ -1,4 +1,4 @@
-import { OtpType } from '@prisma/client';
+import { OAuthProvider, OtpType } from '@prisma/client';
 import { z } from 'zod';
 
 const signInSchema = z.object({
@@ -99,10 +99,47 @@ const ResetPasswordSchema = z.object({
   }),
 });
 
+const OAuthSignInSchema = z.object({
+  body: z.object({
+    email: z
+      .string({
+        message: 'Email is required.',
+      })
+      .email({
+        message: 'Invalid email!',
+      }),
+    firstName: z
+      .string({
+        message: 'First name is required.',
+      })
+      .min(1, {
+        message: 'First name must be at least 1 characters.',
+      }),
+    lastName: z
+      .string({
+        message: 'Last name is required.',
+      })
+      .min(1, {
+        message: 'Last name must be at least 1 characters.',
+      }),
+    provider: z.enum([OAuthProvider.google, OAuthProvider.github], {
+      message: 'Invalid provider.',
+    }),
+    providerId: z
+      .string({
+        message: 'Provider ID is required.',
+      })
+      .min(2, {
+        message: 'Provider ID must be at least 2 characters.',
+      }),
+  }),
+});
+
 export const AuthValidation = {
   signInSchema,
   signUpSchema,
   sendOtpSchema,
   verifyAccountSchema,
   ResetPasswordSchema,
+  OAuthSignInSchema,
 };

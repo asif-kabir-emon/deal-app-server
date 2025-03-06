@@ -598,6 +598,7 @@ const OAuthSignIn = async (payload: OAuthSignInPayload) => {
     token: token,
     user: userData,
     redirectUrl: null,
+    expiresIn: config.jwt.access_expires_in,
   };
 };
 

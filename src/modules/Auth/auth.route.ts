@@ -37,4 +37,17 @@ router.post(
   AuthController.resetPassword
 );
 
+router.post(
+  '/change-password',
+  auth(),
+  // validateRequest(AuthValidation.ChangePasswordSchema),
+  AuthController.changePassword
+);
+
+router.post(
+  '/oauth-sign-in',
+  validateRequest(AuthValidation.OAuthSignInSchema),
+  AuthController.OAuthSignIn
+);
+
 export const AuthRoutes = router;
